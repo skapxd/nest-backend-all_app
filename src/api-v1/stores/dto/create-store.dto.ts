@@ -1,15 +1,20 @@
 export class CreateStoreDto {
 
     phoneIdStore: string
+
+    city?: string 
+    country?: string 
+    category?: string 
+    departament?: string 
     
-    urlImage?: string
     latLng?: string
-    cityPath?: string
-    visibilidad?: boolean
-    categories?: string
-    telegram?: string
-    direccion?: string
-    phoneCall?: string
+    urlImage?: string
     nameStore?: string
+    visibilidad?: boolean
+    
+    telegram?: string
+    phoneCall?: string
+    direccion?: string
     phoneWhatsApp?: string
+    
 }

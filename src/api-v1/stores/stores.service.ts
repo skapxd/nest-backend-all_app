@@ -3,6 +3,13 @@ import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { FirebaseService } from '../../providers/firebase/firebase.service';
 
+interface QueryI {
+  city: string
+  country: string
+  category: string
+  departament: string
+}
+
 @Injectable()
 export class StoresService {
 
@@ -33,11 +40,31 @@ export class StoresService {
     }
   }
 
-  async findAll() {
+  async findAll(data: QueryI) {
 
     try {
 
-      const querySnapshot = await this.firebase.fireStore.collection(this.stores).get()
+      let querySnapshot;
+
+      if (!data.category) {
+
+        querySnapshot = await this.firebase.fireStore
+          .collection(this.stores)
+          .where('city', '==', data.city)
+          .where('country', '==', data.country)
+          .where('departament', '==', data.departament)
+          .get()
+          
+      } else {
+
+        querySnapshot = await this.firebase.fireStore
+          .collection(this.stores)
+          .where('city', '==', data.city)
+          .where('country', '==', data.country)
+          .where('category', '==', data.category)
+          .where('departament', '==', data.departament)
+          .get()
+      }
 
       const res = querySnapshot.docs.map((e) => {
         return e.data()
