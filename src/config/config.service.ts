@@ -12,6 +12,8 @@ export class ConfigService {
   public keyToken: string = process.env.KEY_TOKEN;
   public port: string | number = process.env.PORT || 3000;
   public urlDatabaseFireStore: string = process.env.URL_DATABASE_FIRESTORE;
+  public storageBucket: string = process.env.STORAGE_BUCKET;
+  public firebaseCredentials: string = process.env.FIREBASE_JSON_CREDENTIAL;
 
   public setEnv() {
     if (fs.existsSync('env/dev.env')) {

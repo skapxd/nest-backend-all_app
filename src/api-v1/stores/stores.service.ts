@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { FirebaseService } from '../../providers/firebase/firebase.service';
+import { Request } from "express";
 
 interface QueryI {
   city: string
   country: string
-  category: string
-  departament: string
+  categoryStore: string
+  department: string
 }
 
 @Injectable()
@@ -17,7 +18,60 @@ export class StoresService {
 
   constructor(
     private firebase: FirebaseService
-  ) { }
+  ) { 
+    this.firebase.fireStore.settings({
+      ignoreUndefinedProperties: true,
+
+    })
+  }
+
+  async uploadLogo( 
+    files: Express.Multer.File, 
+    req: Request, 
+    // name: any
+  ){
+
+    console.log(req['user']);
+    try {
+      
+      // const type = file.mimetype.split('/')[1];
+      console.log(files);
+  
+  
+      // console.log(
+      //   type
+      // );
+  
+      // console.log(
+      //   file.originalname
+      // );
+  
+      // const logo = await this.firebase.storage
+      //   .file(file.originalname)
+      //   .save(file.buffer, {
+      //     public: true,
+      //     private: false, 
+          
+      //     metadata: {
+      //       metadata: {
+  
+      //         firebaseStorageDownloadTokens: 'REPLACE_THIS_WITH_ANY_TEXT_VALUE_EXAMPLE_UUID',
+      //       },
+      //     },
+      //   });
+      return {
+        success: true
+      }
+      
+    } catch (error) {
+
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+  }
 
   async create(createStoreDto: CreateStoreDto) {
 
@@ -46,13 +100,15 @@ export class StoresService {
 
       let querySnapshot;
 
-      if (!data.category) {
+      console.log(data);
+
+      if (!data.categoryStore) {
 
         querySnapshot = await this.firebase.fireStore
           .collection(this.stores)
           .where('city', '==', data.city)
           .where('country', '==', data.country)
-          .where('departament', '==', data.departament)
+          .where('department', '==', data.department)
           .get()
           
       } else {
@@ -61,8 +117,8 @@ export class StoresService {
           .collection(this.stores)
           .where('city', '==', data.city)
           .where('country', '==', data.country)
-          .where('category', '==', data.category)
-          .where('departament', '==', data.departament)
+          .where('categoryStore', '==', data.categoryStore)
+          .where('department', '==', data.department)
           .get()
       }
 

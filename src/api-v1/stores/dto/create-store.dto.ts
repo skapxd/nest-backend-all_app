@@ -9,6 +9,9 @@ export class CreateStoreDto {
     
     latLng?: string
     urlImage?: string
+
+    fileImage?: any
+
     nameStore?: string
     visibilidad?: boolean
     

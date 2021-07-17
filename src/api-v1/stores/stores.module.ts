@@ -8,11 +8,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '../../config/config.service';
 import { JwtStrategy } from 'src/auth/jwt.strategy';
 import { ConfigModule } from 'src/config/config.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
     FirebaseModule,
     ConfigModule,
+    // MulterModule.register({
+    //   dest: './upload',
+    // }),
     JwtModule.registerAsync({
       useFactory: async () => ({
         secret: new ConfigService().keyToken,

@@ -100,38 +100,40 @@ export class AuthService {
 
       prettyCode.splice(3, 0, ' ')
 
+      console.log(prettyCode);
+
       // Update Current User
       if (user) {
 
         data.smsCode = code;
         data.codeExpire = expire
 
-        await this.firebase.fireStore.collection(this.users)
+        // Save data
+        this.firebase.fireStore.collection(this.users)
           .doc(data.phone)
           .set(data, {
             merge: true,
             
           })
 
-        await this.whatsApp.sendSimpleText({
+        this.whatsApp.sendSimpleText({
           msjText: `*${prettyCode.join('')}* es tu código de verificación de *All App*`,
           phone: data.phone
         })
 
         return {
           success: true,
-
         }
 
         // Create New User
       } else {
 
-        // await this.repository.save(data)
-        await this.firebase.fireStore.collection(this.users)
+        // Save data
+        this.firebase.fireStore.collection(this.users)
           .doc(data.phone)
           .set(data)
 
-        await this.whatsApp.sendSimpleText({
+        this.whatsApp.sendSimpleText({
           msjText: `*${prettyCode.join('')}* es tu código de verificación de *All App*`,
           phone: data.phone
         })
