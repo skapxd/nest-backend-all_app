@@ -3,7 +3,8 @@ import { ConfigService } from './config.service';
 
 @Module({
     providers: [
-        ConfigService
+        ConfigService,
+        
     ],
     exports: [
         ConfigService

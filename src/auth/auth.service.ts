@@ -1,12 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Cache } from "cache-manager";
 import { CreateUserDto } from 'src/auth/dto/create-user.dto';
 import { WhatsAppService } from 'src/providers/whatsapp/whatsapp.service';
 import { FirebaseService } from '../providers/firebase/firebase.service';
-
-// class Path {
-//   static Users: string = 'users' 
-// }
 
 @Injectable()
 export class AuthService {
@@ -14,50 +12,60 @@ export class AuthService {
   users: string = 'users'
 
   constructor(
-    // @InjectRepository(User)
-    // private readonly repository: Repository<User>,
-    private jwtService: JwtService,
-    private firebase: FirebaseService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly jwtService: JwtService,
     private readonly whatsApp: WhatsAppService,
+    private readonly firebase: FirebaseService,
+    // private readonly httpService: HttpService
   ) { }
 
-  async verifyPhoneCode(data: CreateUserDto) {
+  async verifyPhoneCode(userDto: CreateUserDto) {
 
     try {
 
-      const now = new Date()
-
-      const userDoc = await this.firebase.fireStore.collection(this.users).doc(data.phone).get()
-
-      const user = userDoc.data()
-
-      if (!user) {
+      // Check exist user 
+      const phoneCache = await this.cacheManager.get<string>(`__code__${userDto.phone}`)
+      if (!phoneCache) {
         throw new Error('Phone invalid')
       }
 
-      // TODO: Single Use Code
-      // Explanation: 
-      //  A user can verify multiple phones before the code expires
-
-      const expire = new Date(user.codeExpire)
-
-      if (user.smsCode !== data.smsCode) {
+      // Compare cache code with user code
+      let user: CreateUserDto = JSON.parse(phoneCache)
+      if (user.smsCode !== userDto.smsCode) {
         throw new Error('Sms code invalid')
 
       }
 
-      if (expire < now) {
-        throw new Error('Sms code expired')
+      // Delete cache code
+      // Used to generate a one-time code
+      this.cacheManager.del(`__code__${userDto.phone}`);
+
+      // Verify user existence to create account creation date
+      const ifExistUser = (await this.firebase.fireStore
+        .collection(this.users)
+        .doc(userDto.phone)
+        .get()).exists;
+      if (!ifExistUser) {
+        userDto.createDateUser = new Date().toString()
       }
 
-      const payload = { phone: user.phone };
+
+
+      // Create user in Firestore 
+      delete userDto.smsCode;
+      this.firebase.fireStore
+        .collection(this.users)
+        .doc(userDto.phone)
+        .set(userDto)
 
       return {
         success: true,
-        token: this.jwtService.sign(payload),
+        token: this.jwtService.sign({ phone: user.phone }),
       }
 
     } catch (error: any) {
+
+      console.log(error.message);
 
       return {
         success: false,
@@ -75,73 +83,33 @@ export class AuthService {
 
       const code: string = random.toString().substring(0, 6)
 
-      const now = new Date()
 
-      const expire = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        now.getHours(),
-        (now.getMinutes() + 5),
-        now.getSeconds(),
-
-      ).toISOString();
-
-
-      const data: CreateUserDto = {
+      const userDto: CreateUserDto = {
         phone,
         smsCode: code,
-        codeExpire: expire
       }
 
-      const user = await this.firebase.fireStore.collection(this.users).doc(data.phone).get()
-
-      let prettyCode: string[] = data.smsCode.split('');
+      let prettyCode: string[] = userDto.smsCode.split('');
 
       prettyCode.splice(3, 0, ' ')
 
-      console.log(prettyCode);
+      userDto.smsCode = code;
 
-      // Update Current User
-      if (user) {
+      const stringUserData = JSON.stringify(userDto)
 
-        data.smsCode = code;
-        data.codeExpire = expire
+      await this.cacheManager.set(
+        `__code__${userDto.phone}`,
+        stringUserData, {
+        ttl: 360
+      });
 
-        // Save data
-        this.firebase.fireStore.collection(this.users)
-          .doc(data.phone)
-          .set(data, {
-            merge: true,
-            
-          })
+      this.whatsApp.sendSimpleText({
+        msjText: `*${prettyCode.join('')}* es tu código de verificación de *All App*`,
+        phone: userDto.phone.replace(/[-\+]/g, '')
+      })
 
-        this.whatsApp.sendSimpleText({
-          msjText: `*${prettyCode.join('')}* es tu código de verificación de *All App*`,
-          phone: data.phone
-        })
-
-        return {
-          success: true,
-        }
-
-        // Create New User
-      } else {
-
-        // Save data
-        this.firebase.fireStore.collection(this.users)
-          .doc(data.phone)
-          .set(data)
-
-        this.whatsApp.sendSimpleText({
-          msjText: `*${prettyCode.join('')}* es tu código de verificación de *All App*`,
-          phone: data.phone
-        })
-
-        return {
-          success: true,
-        }
-
+      return {
+        success: true,
       }
 
     } catch (error) {
@@ -151,12 +119,5 @@ export class AuthService {
         error: error.message
       }
     }
-  }
-
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
   }
 }

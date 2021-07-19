@@ -1,7 +1,18 @@
 import { Users } from "../entities/user.entity"
 
 export class CreateUserDto implements Users {
+
     phone: string
-    smsCode?: string
-    codeExpire?: string
+    
+    lastAccessDateUser?: string
+    
+    createDateUser?: any
+    
+    tokenFCM?: string
+
+    smsCode: string
+
+    country?: string
+    department?: string
+    city?: string
 }

@@ -14,6 +14,7 @@ export class ConfigService {
   public urlDatabaseFireStore: string = process.env.URL_DATABASE_FIRESTORE;
   public storageBucket: string = process.env.STORAGE_BUCKET;
   public firebaseCredentials: string = process.env.FIREBASE_JSON_CREDENTIAL;
+  public geoCodingToken: string = process.env.GEO_CODING_TOKEN
 
   public setEnv() {
     if (fs.existsSync('env/dev.env')) {

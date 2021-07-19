@@ -1,4 +1,6 @@
-export class CreateStoreDto {
+export class StoreDto {
+
+    phoneIdStore?: string
 
     city?: string 
     country?: string 
@@ -17,8 +19,5 @@ export class CreateStoreDto {
     phoneCall?: string
     direccion?: string
     phoneWhatsApp?: string
-
-    createData?: string
-    
     
 }

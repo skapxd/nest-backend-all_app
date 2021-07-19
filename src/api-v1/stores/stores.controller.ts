@@ -14,16 +14,19 @@ export class StoresController {
   @UseInterceptors(FileInterceptor('file'))
   uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Req() req : Request,
+    @Req() req: Request,
   ) {
-    
+
     return this.storesService.uploadLogo(file, req);
   }
 
 
   @Post()
-  create(@Body() createStoreDto: CreateStoreDto) {
-    return this.storesService.create(createStoreDto);
+  create(
+    @Body() createStoreDto: CreateStoreDto,
+    @Req() req: Request,
+  ) {
+    return this.storesService.createStore(createStoreDto, req);
   }
 
 

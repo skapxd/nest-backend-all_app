@@ -10,6 +10,7 @@ import { RouterModule } from 'nest-router';
 import { routes } from './routes';
 import { WhatsAppModule } from './providers/whatsapp/whatsapp.module';
 import { ConfigModule } from './config/config.module';
+import { LatlngToAddressModule } from './latlng-to-address/latlng-to-address.module';
 @Module({
   imports: [
     RouterModule.forRoutes(routes),
@@ -17,7 +18,8 @@ import { ConfigModule } from './config/config.module';
     StoresModule,
     ConfigModule,
     WhatsAppModule,
-    AuthModule
+    AuthModule,
+    LatlngToAddressModule
   ],
   controllers: [AppController], 
   providers: [
