@@ -17,19 +17,16 @@ export class ConfigService {
   public geoCodingToken: string = process.env.GEO_CODING_TOKEN
 
   public setEnv() {
-    if (fs.existsSync('env/dev.env')) {
 
-      config({
-        path: 'env/dev.env'
-      })
+    // In case dev variables exist
+    const dev = config({
+      path: 'env/dev.env'
+    })
 
-    } else {
-
-      config({
-        path: 'env/prod.env'
-      })
-
-    }
+    
+    const prod = config({
+      path: 'env/prod.env'
+    })
   }
 
   public dbConnection(): TypeOrmModuleOptions | Promise<TypeOrmModuleOptions> {

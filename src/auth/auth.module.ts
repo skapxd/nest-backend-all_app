@@ -8,7 +8,7 @@ import { WhatsAppModule } from 'src/providers/whatsapp/whatsapp.module';
 import { FirebaseModule } from 'src/providers/firebase/firebase.module';
 import { ConfigModule } from '../config/config.module';
 import { AuthController } from './auth.controller';
-import { LatlngToAddressModule } from '../latlng-to-address/latlng-to-address.module';
+import { GeoCodingModule } from '../geo_coding/geo_coding.module';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { LatlngToAddressModule } from '../latlng-to-address/latlng-to-address.mo
     FirebaseModule,
     WhatsAppModule,
     PassportModule,
-    LatlngToAddressModule,
+    GeoCodingModule,
     CacheModule.register(),
     JwtModule.registerAsync({
       useFactory: async () => ({
@@ -30,7 +30,6 @@ import { LatlngToAddressModule } from '../latlng-to-address/latlng-to-address.mo
   ],
   exports: [
     AuthService,
-    // JwtModule
   ],
   controllers: [AuthController],
 })

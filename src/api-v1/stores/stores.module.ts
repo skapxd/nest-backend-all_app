@@ -9,14 +9,13 @@ import { ConfigService } from '../../config/config.service';
 import { JwtStrategy } from 'src/auth/jwt.strategy';
 import { ConfigModule } from 'src/config/config.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { GeoCodingModule } from 'src/geo_coding/geo_coding.module';
 
 @Module({
   imports: [
     FirebaseModule,
     ConfigModule,
-    // MulterModule.register({
-    //   dest: './upload',
-    // }),
+    GeoCodingModule,
     JwtModule.registerAsync({
       useFactory: async () => ({
         secret: new ConfigService().keyToken,
@@ -28,10 +27,6 @@ import { MulterModule } from '@nestjs/platform-express';
   providers: [
     StoresService,
     JwtStrategy,
-    // {
-    //   provide: 'APP_GUARD',
-    //   useClass: JwtAuthGuard,
-    // },
   ]
 })
 export class StoresModule {}

@@ -1,18 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CreateStoreDto } from './dto/create-store.dto';
-import { UpdateStoreDto } from './dto/update-store.dto';
+import { CreateStoreDto } from './dto/create_store.dto';
 import { FirebaseService } from '../../providers/firebase/firebase.service';
 import { Request } from "express";
 import { v4 as uuid4 } from "uuid";
 import { ConfigService } from '../../config/config.service';
-import { StoreDto } from './dto/store.dto';
+import { CreateStoreEntity } from './entities/create_store.entity';
+import { GeoCodingService } from 'src/geo_coding/geo_coding.service';
+import { FindAllStoreDto } from './dto/find_all_store.dto';
+import { LatLng } from 'src/models/lat_lng.dto';
+import { LocationStoreEntity } from './entities/location_store.entity';
 
-interface QueryI {
-  city: string
-  country: string
-  categoryStore: string
-  department: string
-}
+
 
 @Injectable()
 export class StoresService {
@@ -20,8 +18,9 @@ export class StoresService {
   private stores: string = 'stores'
 
   constructor(
-    private firebase: FirebaseService,
-    private config: ConfigService
+    private readonly firebase: FirebaseService,
+    private readonly config: ConfigService,
+    private readonly geoCodingService: GeoCodingService
   ) {
     this.firebase.fireStore.settings({
       ignoreUndefinedProperties: true,
@@ -93,28 +92,77 @@ export class StoresService {
 
     try {
 
-      const user: { phone?: string } = req['user'];
 
-      const ifExistUser = await this.firebase.fireStore
-        .collection(this.stores)
-        .doc(user.phone)
-        .get()
+      // User extracted from jwt
+      const store: { phone?: string } = req['user'];
 
-      const now = new Date();
 
-      if (!ifExistUser.exists) {
-        createStoreDto.createData = now.toString();
+      // Get AddressModel and Save storeEntity
+      const saveLocationStoreEntity = async (latLng: LatLng, index: number) => {
+
+
+        // Get AddressModel and set data in locationStoreEntity 
+        const addressModel = await this.geoCodingService.latLngToAddress({
+          lat: latLng.lat,
+          lng: latLng.lng,
+        })
+        const locationStoreEntity: LocationStoreEntity = {
+          country: addressModel.country,
+          department: addressModel.department,
+          city: addressModel.city,
+          lat: latLng.lat,
+          lng: latLng.lng,
+        }
+
+
+        // Saving locationStoreEntity in Firestore
+        this.firebase.fireStore.collection(this.stores)
+          .doc(`${store.phone}/location/${index}`)
+          .set(locationStoreEntity, {
+            merge: true
+          });
       }
 
-      const userDto: StoreDto = createStoreDto
 
-      userDto.phoneIdStore = user.phone;
+      // Saving each location in Firestore
+      createStoreDto.latLng.forEach((latLng, index) => {
 
+        saveLocationStoreEntity(latLng, index);
+      })
+
+
+      // Create storeEntity
+      const storeEntity: CreateStoreEntity = {
+        address: createStoreDto.address,
+        category: createStoreDto.category,
+        nameStore: createStoreDto.nameStore,
+        phoneCall: createStoreDto.phoneCall,
+        phoneWhatsApp: createStoreDto.phoneWhatsApp,
+        telegram: createStoreDto.telegram,
+        visibility: createStoreDto.visibility,
+        phoneIdStore: store.phone,
+      }
+
+
+      // Verify store exist
+      const ifExistStore = (await this.firebase.fireStore
+        .collection(this.stores)
+        .doc(store.phone)
+        .get()).exists
+
+
+      // If store don't exist, add Date create
+      const now = new Date();
+      if (!ifExistStore) {
+        storeEntity.createData = now.toString()
+      }
+
+
+      // Saving storeEntity in Firestore
       this.firebase.fireStore.collection(this.stores)
-        .doc(user.phone)
-        .set(userDto, {
-          merge: true
-        });
+        .doc(store.phone)
+        .set(storeEntity, { merge: true })
+
 
       return {
         success: true,
@@ -129,33 +177,41 @@ export class StoresService {
     }
   }
 
-  async findAll(data: QueryI) {
+  async findAll(findAllStoreDto: FindAllStoreDto) {
 
     try {
 
-      let querySnapshot;
+      let querySnapshot: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>
 
-      console.log(data);
+      console.log(findAllStoreDto);
 
-      if (!data.categoryStore) {
+      const addressModel = await this.geoCodingService.latLngToAddress({
+        lat: Number(findAllStoreDto.lat),
+        lng: Number(findAllStoreDto.lng),
+      })
+
+      console.log(addressModel);
+
+      if (!findAllStoreDto.category) {
 
         querySnapshot = await this.firebase.fireStore
           .collection(this.stores)
-          .where('city', '==', data.city)
-          .where('country', '==', data.country)
-          .where('department', '==', data.department)
+          .where('city', '==', addressModel.city)
+          .where('country', '==', addressModel.country)
+          .where('department', '==', addressModel.department)
           .get()
 
       } else {
 
         querySnapshot = await this.firebase.fireStore
           .collection(this.stores)
-          .where('city', '==', data.city)
-          .where('country', '==', data.country)
-          .where('categoryStore', '==', data.categoryStore)
-          .where('department', '==', data.department)
+          .where('city', '==', addressModel.city)
+          .where('country', '==', addressModel.country)
+          .where('department', '==', addressModel.department)
+          .where('categoryStore', '==', findAllStoreDto.category)
           .get()
       }
+
 
       const res = querySnapshot.docs.map((e) => {
         return e.data()
@@ -207,31 +263,6 @@ export class StoresService {
     return `This action returns a #${id} store`;
   }
 
-  async update(id: string, updateStoreDto: UpdateStoreDto) {
-
-    try {
-
-      console.log(updateStoreDto);
-
-      await this.firebase.fireStore.collection(this.stores)
-        .doc(id)
-        .set(
-          updateStoreDto, {
-          merge: true
-        })
-
-      return {
-        success: true,
-      }
-
-    } catch (error) {
-
-      return {
-        success: false,
-        error: error.message
-      }
-    }
-  }
 
   remove(id: string) {
     return `This action removes a #${id} store`;

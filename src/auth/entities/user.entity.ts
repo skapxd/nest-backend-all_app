@@ -1,18 +1,30 @@
-// import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-// @Entity()
-export class Users {
-
-    phone: string
-
-    tokenFCM?: string
+export class CreateUserEntity {
 
     name?: string
 
     urlPhoto?: string
 
-    createDateUser?: any
+    phone: string
 
     lastAccessDateUser?: string
+
+    tokenFCM?: string
+
+    create?: {
+
+        latLng?: {
+            lat: string
+            lng: string
+        }
+
+        country?: string
+        department?: string
+        city?: string
+
+        createDateUser?: any
+
+    }
+
 
 }

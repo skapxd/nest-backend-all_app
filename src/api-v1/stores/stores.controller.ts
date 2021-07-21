@@ -1,10 +1,11 @@
 import { Headers, Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
 import { StoresService } from './stores.service';
-import { CreateStoreDto } from './dto/create-store.dto';
-import { UpdateStoreDto } from './dto/update-store.dto';
+import { CreateStoreDto } from './dto/create_store.dto';
 import { JwtAuthGuard } from 'src/auth/jwt_auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from "express";
+import { CustomValidationPipe } from '../../pipes/custom_error.pipe';
+import { FindAllStoreDto } from './dto/find_all_store.dto';
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class StoresController {
@@ -23,7 +24,7 @@ export class StoresController {
 
   @Post()
   create(
-    @Body() createStoreDto: CreateStoreDto,
+    @Body(new CustomValidationPipe()) createStoreDto: CreateStoreDto,
     @Req() req: Request,
   ) {
     return this.storesService.createStore(createStoreDto, req);
@@ -32,17 +33,9 @@ export class StoresController {
 
   @Get()
   findAll(
-    @Query('city') city: string,
-    @Query('country') country: string,
-    @Query('categoryStore') categoryStore: string,
-    @Query('department') department: string,
+    @Query(new CustomValidationPipe()) findAllStoreDto: FindAllStoreDto,
   ) {
-    return this.storesService.findAll({
-      city: city,
-      country: country,
-      categoryStore: categoryStore,
-      department: department,
-    });
+    return this.storesService.findAll(findAllStoreDto);
   }
 
 
@@ -52,10 +45,6 @@ export class StoresController {
   }
 
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStoreDto: UpdateStoreDto) {
-    return this.storesService.update(id, updateStoreDto);
-  }
 
 
   @Delete(':id')

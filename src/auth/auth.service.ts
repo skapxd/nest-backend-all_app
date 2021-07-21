@@ -1,10 +1,13 @@
-import { HttpService } from '@nestjs/axios';
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Cache } from "cache-manager";
-import { CreateUserDto } from 'src/auth/dto/create-user.dto';
 import { WhatsAppService } from 'src/providers/whatsapp/whatsapp.service';
 import { FirebaseService } from '../providers/firebase/firebase.service';
+import { GeoCodingService } from '../geo_coding/geo_coding.service';
+import { VerifyPhoneCodeDto } from './dto/verify_phone_code.dto';
+import { CreateUserEntity } from './entities/user.entity';
+import { CreatePhoneCodeDto } from './dto/create_phone_code.dto';
+
 
 @Injectable()
 export class AuthService {
@@ -16,47 +19,72 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly whatsApp: WhatsAppService,
     private readonly firebase: FirebaseService,
-    // private readonly httpService: HttpService
+    private readonly geoCodingService: GeoCodingService,
+
   ) { }
 
-  async verifyPhoneCode(userDto: CreateUserDto) {
+  async verifyPhoneCode(data: VerifyPhoneCodeDto) {
 
     try {
 
       // Check exist user 
-      const phoneCache = await this.cacheManager.get<string>(`__code__${userDto.phone}`)
+      const phoneCache = await this.cacheManager.get<string>(`__code__${data.phone}`)
       if (!phoneCache) {
         throw new Error('Phone invalid')
       }
 
-      // Compare cache code with user code
-      let user: CreateUserDto = JSON.parse(phoneCache)
-      if (user.smsCode !== userDto.smsCode) {
-        throw new Error('Sms code invalid')
 
+      // Compare cache code with user code
+      let user: VerifyPhoneCodeDto = JSON.parse(phoneCache)
+      if (user.smsCode !== data.smsCode) {
+        throw new Error('Sms code invalid')
       }
+
+
+      // Verify user existence
+      const ifExistUser = (await this.firebase.fireStore
+        .collection(this.users)
+        .doc(data.phone)
+        .get()).exists;
+
 
       // Delete cache code
       // Used to generate a one-time code
-      this.cacheManager.del(`__code__${userDto.phone}`);
+      delete data.smsCode;
+      this.cacheManager.del(`__code__${data.phone}`);
 
-      // Verify user existence to create account creation date
-      const ifExistUser = (await this.firebase.fireStore
-        .collection(this.users)
-        .doc(userDto.phone)
-        .get()).exists;
-      if (!ifExistUser) {
-        userDto.createDateUser = new Date().toString()
+
+      // Declaring userEntity, get AddressModel and Save in Firestore
+      const userEntity: CreateUserEntity = data
+      const saveEntity = async () => {
+
+        
+        // Add AddressModel and DateCreate to userEntity
+        const addressModel = await this.geoCodingService.latLngToAddress({
+          lat: data.latLng.lat,
+          lng: data.latLng.lng,
+        })
+        userEntity.create = {
+          city: addressModel.city,
+          department: addressModel.department,
+          country: addressModel.country,
+          createDateUser: new Date().toString()
+        }
+
+
+        // Save userEntity in Firestore 
+        this.firebase.fireStore
+          .collection(this.users)
+          .doc(userEntity.phone)
+          .set(userEntity)
       }
 
 
+      // If user don't existe, execute saveEntity
+      if (!ifExistUser) {
+        saveEntity();
+      }
 
-      // Create user in Firestore 
-      delete userDto.smsCode;
-      this.firebase.fireStore
-        .collection(this.users)
-        .doc(userDto.phone)
-        .set(userDto)
 
       return {
         success: true,
@@ -75,34 +103,39 @@ export class AuthService {
 
   }
 
-  async createPhoneCode(phone: string) {
+  async createPhoneCode(userDto: CreatePhoneCodeDto) {
 
     try {
 
-      const random = Math.random() * 1e10
 
+      // Generate code to validate
+      const random = Math.random() * 1e10
       const code: string = random.toString().substring(0, 6)
 
 
-      const userDto: CreateUserDto = {
-        phone,
-        smsCode: code,
-      }
-
-      let prettyCode: string[] = userDto.smsCode.split('');
-
-      prettyCode.splice(3, 0, ' ')
-
+      // assigning interface
+      // const userDto: createPhoneCodeI = {
+      //   phone,
+      //   smsCode: code,
+      // }
       userDto.smsCode = code;
 
-      const stringUserData = JSON.stringify(userDto)
+      // Improving code readability
+      let prettyCode: string[] = userDto.smsCode.split('');
+      prettyCode.splice(3, 0, ' ')
+      userDto.smsCode = code;
 
+
+      // Caching code
+      const stringUserData = JSON.stringify(userDto)
       await this.cacheManager.set(
         `__code__${userDto.phone}`,
         stringUserData, {
         ttl: 360
       });
 
+
+      // Sending code to the client's WhatsApp 
       this.whatsApp.sendSimpleText({
         msjText: `*${prettyCode.join('')}* es tu código de verificación de *All App*`,
         phone: userDto.phone.replace(/[-\+]/g, '')

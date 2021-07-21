@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { LatlngToAddressService } from './latlng-to-address.service';
+import { GeoCodingService } from './geo_coding.service';
 
 describe('LatlngToAddressService', () => {
-  let service: LatlngToAddressService;
+  let service: GeoCodingService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [LatlngToAddressService],
+      providers: [GeoCodingService],
     }).compile();
 
-    service = module.get<LatlngToAddressService>(LatlngToAddressService);
+    service = module.get<GeoCodingService>(GeoCodingService);
   });
 
   it('should be defined', () => {

@@ -1,40 +1,39 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { Public } from 'src/decorator/skip_auth';
+import { Body, Controller, Get, Post, UseFilters, UsePipes } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LatlngToAddressService } from '../latlng-to-address/latlng-to-address.service';
+import { GeoCodingService } from '../geo_coding/geo_coding.service';
+import { VerifyPhoneCodeDto } from './dto/verify_phone_code.dto';
+import { CreatePhoneCodeDto } from './dto/create_phone_code.dto';
+import { CustomValidationPipe } from '../pipes/custom_error.pipe';
 
 @Controller()
 export class AuthController {
 
-    constructor(
-        private authService: AuthService,
-        private latlngToAddressService: LatlngToAddressService
-    ){}
+  constructor(
+    private authService: AuthService,
+    private latlngToAddressService: GeoCodingService
+  ) { }
 
 
-    @Get('/get')
-    get(){
-      console.log('object');
-      return this.latlngToAddressService.latLngToAddress({
-        lat: '6.028305',
-        lng: '-75.4358883'
-      })
-    }
+  // @Get('/get')
+  // get() {
+  //   console.log('object');
+  //   return this.latlngToAddressService.latLngToAddress({
+  //     lat: '6.028305',
+  //     lng: '-75.4358883'
+  //   })
+  // }
 
-    @Post('/create-phone-code')
-    createPhoneCode(
-      @Body() data: any
-    ) {
-      return this.authService.createPhoneCode(data['phone'])
-    }
-    
-    @Post('/verify-phone-code')
-    async verifyPhoneCode(
-      @Body() data: any
-    ) {
-      return this.authService.verifyPhoneCode({
-        smsCode: data['smsCode'],
-        phone: data['phone'],
-      });
-    }
+  @Post('/create-phone-code')
+  createPhoneCode(
+    @Body(new CustomValidationPipe()) createPhoneCodeDto: CreatePhoneCodeDto
+  ) {
+    return this.authService.createPhoneCode(createPhoneCodeDto)
+  }
+
+  @Post('/verify-phone-code')
+  verifyPhoneCode(
+    @Body(new CustomValidationPipe()) verifyPhoneCodeDto: VerifyPhoneCodeDto
+  ) {
+    return this.authService.verifyPhoneCode(verifyPhoneCodeDto);
+  }
 }
