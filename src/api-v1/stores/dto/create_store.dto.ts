@@ -1,13 +1,13 @@
-import { LatLng } from "src/models/lat_lng.dto"
 import { IsBoolean, IsDefined, IsNotEmptyObject, IsObject, IsString, ValidateNested } from 'class-validator';
 import { Type } from "class-transformer";
+import { LatLngDto } from '../../../models/dto/lat_lng.dto';
 
 export class CreateStoreDto {
     
     @IsDefined()
-    @Type(() => LatLng)
+    @Type(() => LatLngDto)
     @ValidateNested()
-    latLng?: LatLng[];
+    latLng?: LatLngDto[];
 
     @IsString()
     category: string;

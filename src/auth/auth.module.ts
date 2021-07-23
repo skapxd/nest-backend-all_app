@@ -5,19 +5,24 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigService } from 'src/config/config.service';
 import { WhatsAppModule } from 'src/providers/whatsapp/whatsapp.module';
-import { FirebaseModule } from 'src/providers/firebase/firebase.module';
 import { ConfigModule } from '../config/config.module';
 import { AuthController } from './auth.controller';
-import { GeoCodingModule } from '../geo_coding/geo_coding.module';
+import { GeoCodingModule } from '../api-v1/geo_coding/geo_coding.module';
 
+import { UserEntity } from './entities/user.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   imports: [
+    TypeOrmModule.forFeature([
+      UserEntity,
+    ]),
+
     ConfigModule, 
-    FirebaseModule,
     WhatsAppModule,
     PassportModule,
     GeoCodingModule,
     CacheModule.register(),
+    
     JwtModule.registerAsync({
       useFactory: async () => ({
         secret: new ConfigService().keyToken,

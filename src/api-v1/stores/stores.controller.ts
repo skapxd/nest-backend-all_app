@@ -47,8 +47,8 @@ export class StoresController {
 
 
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.storesService.remove(id);
+  @Delete()
+  remove(@Req() req: Request) {
+    return this.storesService.removeLocationsStoreEntityFromStoreEntity(req);
   }
 }

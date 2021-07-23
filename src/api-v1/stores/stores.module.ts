@@ -9,10 +9,19 @@ import { ConfigService } from '../../config/config.service';
 import { JwtStrategy } from 'src/auth/jwt.strategy';
 import { ConfigModule } from 'src/config/config.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { GeoCodingModule } from 'src/geo_coding/geo_coding.module';
+import { GeoCodingModule } from 'src/api-v1/geo_coding/geo_coding.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { LatLngEntity } from 'src/models/entity/lat_lng.entity';
+import { ContactStoreEntity } from './entities/contac_store.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { StoreEntity } from './entities/store.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([
+      // UserEntity,
+      StoreEntity
+    ]),
     FirebaseModule,
     ConfigModule,
     GeoCodingModule,

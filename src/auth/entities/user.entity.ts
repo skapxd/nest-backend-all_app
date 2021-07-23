@@ -1,30 +1,33 @@
 
-export class CreateUserEntity {
+import { Column, Entity, ObjectIdColumn } from 'typeorm';
+import { UserCreateEntity } from './create.entity';
 
-    name?: string
 
-    urlPhoto?: string
+@Entity()
+export class UserEntity {
 
-    phone: string
+    @ObjectIdColumn()
+    id?: string;
+    
+    @Column()
+    name?: string;
 
-    lastAccessDateUser?: string
+    @Column()
+    urlPhoto?: string;
 
-    tokenFCM?: string
+    @Column()
+    phone: string;
 
-    create?: {
+    @Column()
+    lastAccessDateUser?: string;
 
-        latLng?: {
-            lat: string
-            lng: string
-        }
+    @Column()
+    tokenFCM?: string;
 
-        country?: string
-        department?: string
-        city?: string
-
-        createDateUser?: any
-
-    }
+    
+    @Column(type => UserCreateEntity)
+    create?: UserCreateEntity
 
 
 }
+

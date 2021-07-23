@@ -14,47 +14,20 @@ export class ConfigService {
   public urlDatabaseFireStore: string = process.env.URL_DATABASE_FIRESTORE;
   public storageBucket: string = process.env.STORAGE_BUCKET;
   public firebaseCredentials: string = process.env.FIREBASE_JSON_CREDENTIAL;
-  public geoCodingToken: string = process.env.GEO_CODING_TOKEN
+  public geoCodingKey: string = process.env.GEO_CODING_KEY
 
   public setEnv() {
 
-    // In case dev variables exist
-    const dev = config({
+    // Important, the variable is not overwritten
+
+    // If dev.env exist, set as environment
+    config({
       path: 'env/dev.env'
     })
 
-    
-    const prod = config({
+    // If dev.env don't exist, set prod.dev as environment
+    config({
       path: 'env/prod.env'
     })
-  }
-
-  public dbConnection(): TypeOrmModuleOptions | Promise<TypeOrmModuleOptions> {
-    let extra
-
-    if (process.env.DB_EXTRA !== 'undefine') {
-      extra = {
-        socketPath: process.env.DB_EXTRA
-      }
-    } else {
-      extra = {}
-    }
-
-    return {
-
-      type: 'mysql',
-      // Blocked by ip, luckily
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT) || 3306,
-
-      username: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-
-      extra,
-
-      autoLoadEntities: true,
-      synchronize: true,
-    }
   }
 }

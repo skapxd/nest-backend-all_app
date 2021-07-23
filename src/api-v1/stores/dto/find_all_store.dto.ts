@@ -3,11 +3,12 @@ import { IsNumber, IsString } from 'class-validator';
 
 export class FindAllStoreDto {
 
-    category: string;
+    category?: string;
 
-    @IsString()
-    lat: string;
-    
-    @IsString()
-    lng: string;
+    lat?: string;
+    lng?: string;
+
+    city?: string;
+    country?: string;
+    department?: string
 }

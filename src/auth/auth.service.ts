@@ -3,10 +3,13 @@ import { JwtService } from '@nestjs/jwt';
 import { Cache } from "cache-manager";
 import { WhatsAppService } from 'src/providers/whatsapp/whatsapp.service';
 import { FirebaseService } from '../providers/firebase/firebase.service';
-import { GeoCodingService } from '../geo_coding/geo_coding.service';
+import { GeoCodingService } from '../api-v1/geo_coding/geo_coding.service';
 import { VerifyPhoneCodeDto } from './dto/verify_phone_code.dto';
-import { CreateUserEntity } from './entities/user.entity';
+import { UserEntity } from './entities/user.entity';
 import { CreatePhoneCodeDto } from './dto/create_phone_code.dto';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserCreateEntity } from './entities/create.entity';
 
 
 @Injectable()
@@ -17,8 +20,9 @@ export class AuthService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly jwtService: JwtService,
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
     private readonly whatsApp: WhatsAppService,
-    private readonly firebase: FirebaseService,
     private readonly geoCodingService: GeoCodingService,
 
   ) { }
@@ -42,10 +46,11 @@ export class AuthService {
 
 
       // Verify user existence
-      const ifExistUser = (await this.firebase.fireStore
-        .collection(this.users)
-        .doc(data.phone)
-        .get()).exists;
+      const ifExistUser = await this.userRepository.findOne({
+        where: {
+          phone: data.phone
+        }
+      })
 
 
       // Delete cache code
@@ -54,29 +59,34 @@ export class AuthService {
       this.cacheManager.del(`__code__${data.phone}`);
 
 
-      // Declaring userEntity, get AddressModel and Save in Firestore
-      const userEntity: CreateUserEntity = data
+      // Declaring userEntity, get AddressModel and set in UserCreateEntity
       const saveEntity = async () => {
 
-        
+
+        const userEntity = new UserEntity()
+        userEntity.phone = data.phone;
+
+
+        userEntity.create = new UserCreateEntity()
+        userEntity.create.latLng = {
+          lat: data.latLng.lat,
+          lng: data.latLng.lng,
+        }
+
+
         // Add AddressModel and DateCreate to userEntity
         const addressModel = await this.geoCodingService.latLngToAddress({
           lat: data.latLng.lat,
           lng: data.latLng.lng,
         })
-        userEntity.create = {
-          city: addressModel.city,
-          department: addressModel.department,
-          country: addressModel.country,
-          createDateUser: new Date().toString()
-        }
+        userEntity.create.city            = addressModel.city
+        userEntity.create.department      = addressModel.department
+        userEntity.create.country         = addressModel.country
+        userEntity.create.createDateUser  = new Date().toString()
 
 
-        // Save userEntity in Firestore 
-        this.firebase.fireStore
-          .collection(this.users)
-          .doc(userEntity.phone)
-          .set(userEntity)
+        // Save userEntity
+        this.userRepository.save(userEntity);
       }
 
 
@@ -111,13 +121,6 @@ export class AuthService {
       // Generate code to validate
       const random = Math.random() * 1e10
       const code: string = random.toString().substring(0, 6)
-
-
-      // assigning interface
-      // const userDto: createPhoneCodeI = {
-      //   phone,
-      //   smsCode: code,
-      // }
       userDto.smsCode = code;
 
       // Improving code readability

@@ -15,15 +15,19 @@ export class FirebaseService {
         this.setCredential()
     }
 
-    public get fireStore(){
-        return admin.firestore();
-    }
+    // public get fireStore(){
+    //     return admin.firestore();
+    // }
 
     public get storage(){
         const storage = admin.storage().bucket(); 
         
         // storage.
         return storage;
+    }
+
+    public get admin(){
+        return admin;
     }
     
 

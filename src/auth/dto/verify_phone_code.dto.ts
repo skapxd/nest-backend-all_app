@@ -1,6 +1,7 @@
 import { IsDefined, IsNotEmptyObject, IsNumber, IsObject, IsString, Length, ValidateNested } from 'class-validator';
-import { LatLng } from '../../models/lat_lng.dto';
+import { LatLngEntity } from '../../models/entity/lat_lng.entity';
 import { Type } from 'class-transformer';
+import { LatLngDto } from '../../models/dto/lat_lng.dto';
 
 
 
@@ -16,7 +17,7 @@ export class VerifyPhoneCodeDto {
     @IsNotEmptyObject()
     @IsObject()
     @ValidateNested()
-    @Type(() => LatLng)
-    latLng: LatLng;
+    @Type(() => LatLngDto)
+    latLng: LatLngDto;
 
 }
