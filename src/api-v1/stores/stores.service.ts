@@ -11,11 +11,10 @@ import { LatLngEntity } from 'src/models/entity/lat_lng.entity';
 import { AddressEntity } from 'src/models/entity/address.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { SetLocationsDto } from './dto/set_locations.dto';
 
 @Injectable()
 export class StoresService {
-
-  private stores: string = 'stores'
 
   constructor(
     private readonly firebase: FirebaseService,
@@ -35,11 +34,11 @@ export class StoresService {
       const v4 = uuid4()
 
       // User extracted from jwt
-      const userID: { phone?: string } = req['user'];
+      const storeID: { phone?: string } = req['user'];
 
       const extension = file.originalname.split('.').reverse()[0];
 
-      const pathImage = `${userID.phone}/logo.${extension}`
+      const pathImage = `${storeID.phone}/logo.${extension}`
 
       this.firebase.storage
         .file(pathImage)
@@ -57,13 +56,28 @@ export class StoresService {
 
 
       const storeEntity = new StoreEntity()
-      storeEntity.phoneIdStore = userID.phone;
+      storeEntity.id = storeID.phone;
       storeEntity.urlImage = `https://firebasestorage.googleapis.com/v0/b/${this.config.storageBucket}/o/${nameURI}?alt=media&token=${v4}`
 
-      this.storeRepository.save(storeEntity)
+
+      // Verify store exist 
+      const ifExistStore = await this.storeRepository.findOne({
+        where: {
+          id: storeID.phone
+        }
+      })
+
+
+      if (!ifExistStore) {
+        this.storeRepository.save(storeEntity);
+      } else {
+        this.storeRepository.update(ifExistStore, storeEntity);
+      }
+
 
       return {
-        success: true
+        success: true,
+        urlImage: storeEntity.urlImage,
       }
 
     } catch (error) {
@@ -83,69 +97,35 @@ export class StoresService {
 
     try {
 
+      console.log(createStoreDto);
+
 
       // User extracted from jwt
       const storeID: { phone?: string } = req['user'];
 
-
-      // Set LocationStoreEntity
-      const setLocationStoreEntity = async (latLng: LatLngEntity) => {
-
-
-        // Get AddressModel and set data in locationStoreEntity 
-        const addressModel = await this.geoCodingService.latLngToAddress({
-          lat: latLng.lat,
-          lng: latLng.lng,
-        })
-        
-        const tempLocationStoreEntity: AddressEntity = {
-          country: addressModel.country,
-          department: addressModel.department,
-          city: addressModel.city,
-          latLng: {
-            lat: latLng.lat,
-            lng: latLng.lng,
-          }
-
-        }
-
-        return tempLocationStoreEntity
-      }
-
       const saveStoreEntity = async () => {
-
-
-        // Get List of AddresModelI
-        const locationsList: AddressEntity[] = await Promise.all(
-          createStoreDto.latLng.map(
-            async (latLng) => {
-
-              return await setLocationStoreEntity(latLng);
-            }
-          )
-        )
 
 
         // Create storeEntity
         const storeEntity: StoreEntity = {
-          address: locationsList,
+          id: storeID.phone,
           contact: {
-            address: createStoreDto.address,
             phoneCall: createStoreDto.phoneCall,
-            phoneWhatsApp: createStoreDto.phoneWhatsApp,
+            whatsApp: createStoreDto.whatsApp,
             telegram: createStoreDto.telegram,
           },
           category: createStoreDto.category,
           nameStore: createStoreDto.nameStore,
           visibility: createStoreDto.visibility,
-          phoneIdStore: storeID.phone,
         }
 
+        console.log(storeEntity);
 
-        // Verify store exist
+
+        // Verify store exist 
         const ifExistStore = await this.storeRepository.findOne({
           where: {
-            phoneIdStore: storeID.phone
+            id: storeID.phone
           }
         })
 
@@ -154,11 +134,11 @@ export class StoresService {
         const now = new Date();
         if (!ifExistStore) {
           storeEntity.createData = now.toString()
+          // Saving storeEntity in MongoDB
+          this.storeRepository.save(storeEntity);
+        } else {
+          this.storeRepository.update(ifExistStore, storeEntity);
         }
-
-
-        // Saving storeEntity in Firestore
-        this.storeRepository.save(storeEntity);
       }
 
 
@@ -174,7 +154,8 @@ export class StoresService {
 
       return {
         success: false,
-        error: error.message
+        error: error.message,
+        functionName: "createStore"
       }
     }
   }
@@ -209,47 +190,24 @@ export class StoresService {
 
       // If Category does not come in Query, Get All stores
       if (!findAllStoreDto.category) {
-        // querySnapshot = await this.firebase.fireStore
-        //   .collection(this.stores)
-        //   .where('address', 'array-contains', addressModel)
-        //   .get()
-
         allStores = await this.storeRepository.find({
           where: {
-            // 'address.city': addressModel.city ,
-            // 'address.department': addressModel.department ,
-            // 'address.country': addressModel.country ,
-            // nameStore: "all app 4"
-            'address.latLng.lat': 6.028305 ,
-
-
+            'address.city': addressModel.city,
+            'address.department': addressModel.department,
+            'address.country': addressModel.country,
           }
         })
 
       } else {
-
-        // querySnapshot = await this.firebase.fireStore
-        //   .collection(this.stores)
-        //   .where('address', 'array-contains', addressModel)
-        //   .where('categoryStore', '==', findAllStoreDto.category)
-        //   .get()
         allStores = await this.storeRepository.find({
           where: {
-            'address.city': addressModel.city ,
-            'address.department': addressModel.department ,
-            'address.country': addressModel.country ,
-            category : findAllStoreDto.category
-
-
+            'address.city': addressModel.city,
+            'address.department': addressModel.department,
+            'address.country': addressModel.country,
+            'category': findAllStoreDto.category
           }
         })
       }
-
-
-      // Set all store in res variable in format JSON 
-      // const res = querySnapshot.docs.map((e) => {
-      //   return e.data()
-      // });
 
       return {
         success: true,
@@ -315,5 +273,105 @@ export class StoresService {
     return {
       success: true
     };
+  }
+
+  async setLocation(
+    setLocationsDto: SetLocationsDto,
+    req: Request,
+  ) {
+    try {
+
+      // User extracted from jwt
+      const storeID: { phone?: string } = req['user'];
+
+
+
+      // Set LocationStoreEntity
+      const setLocationStoreEntity = async (latLng: LatLngEntity) => {
+
+
+        // Get AddressModel and set data in locationStoreEntity 
+        const addressModel = await this.geoCodingService.latLngToAddress({
+          lat: latLng.lat,
+          lng: latLng.lng,
+        })
+
+        const tempLocationStoreEntity: AddressEntity = {
+          country: addressModel.country,
+          department: addressModel.department,
+          city: addressModel.city,
+          latLng: {
+            lat: latLng.lat,
+            lng: latLng.lng,
+          }
+        }
+        return tempLocationStoreEntity
+      }
+
+
+      // Save LocationStoreEntity
+      const saveLocationStoreEntity = async () => {
+
+        // Get List of AddresModelI
+        const locationsList: AddressEntity[] = await Promise.all(
+          setLocationsDto.latLng.map(
+            async (latLng) => {
+
+              return await setLocationStoreEntity(latLng);
+            }
+          )
+        )
+
+        const initStoreEntity: StoreEntity = {
+
+          id: storeID.phone,
+          address: locationsList,
+          contact: {
+            phoneCall: '',
+            whatsApp: '',
+            telegram: '',
+          },
+          category: '',
+          nameStore: '',
+          visibility: false,
+        }
+
+        const onlyLocationStoreEntity: StoreEntity = {
+          address: locationsList
+        }
+
+        // Verify store exist 
+        const ifExistStore = await this.storeRepository.findOne({
+          where: {
+            id: storeID.phone
+          }
+        })
+
+        // If store don't exist, add Date create
+        const now = new Date();
+        if (!ifExistStore) {
+          initStoreEntity.createData = now.toString()
+          // Saving storeEntity in MongoDB
+          this.storeRepository.save(initStoreEntity);
+        } else {
+          this.storeRepository.update(ifExistStore, onlyLocationStoreEntity);
+        }
+
+      }
+
+      saveLocationStoreEntity();
+
+      return {
+        success: true,
+      }
+
+    } catch (error) {
+
+      return {
+        success: false,
+        error: error.message,
+        functionName: "setLocation"
+      }
+    }
   }
 }

@@ -15,6 +15,7 @@ export class ConfigService {
   public storageBucket: string = process.env.STORAGE_BUCKET;
   public firebaseCredentials: string = process.env.FIREBASE_JSON_CREDENTIAL;
   public geoCodingKey: string = process.env.GEO_CODING_KEY
+  public mongoDbCredential: string = process.env.MONGO_DB_CREDENTIAL
 
   public setEnv() {
 

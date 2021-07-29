@@ -4,7 +4,6 @@ import { CustomValidationPipe } from '../../pipes/custom_error.pipe';
 import { GetGeoCoding } from './dto/get_geo_coding.dto';
 import { JwtAuthGuard } from 'src/auth/jwt_auth.guard';
 
-@UseGuards(JwtAuthGuard)
 @Controller()
 export class GeoCodingController {
 
@@ -13,12 +12,25 @@ export class GeoCodingController {
     ){}
 
     @Get()
-    getGeoCoding(
+    async getGeoCoding(
         @Query( new CustomValidationPipe() ) params: GetGeoCoding
     ){
-        return this.geoService.latLngToAddress({
-            lat: params.lat,
-            lng: params.lng,
-        })
+
+        try {
+            const res = await this.geoService.latLngToAddress({
+                lat: params.lat,
+                lng: params.lng,
+            })
+
+            return {
+                success: true,
+                location: res,
+            }
+        } catch (error) {
+            
+            return {
+                success: false,
+            }
+        }
     }
 }

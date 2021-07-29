@@ -1,4 +1,4 @@
-import { Headers, Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
+import { Headers, Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors, UploadedFile, Req, Header } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create_store.dto';
 import { JwtAuthGuard } from 'src/auth/jwt_auth.guard';
@@ -6,6 +6,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from "express";
 import { CustomValidationPipe } from '../../pipes/custom_error.pipe';
 import { FindAllStoreDto } from './dto/find_all_store.dto';
+import { SetLocationsDto } from './dto/set_locations.dto';
+
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class StoresController {
@@ -30,11 +32,20 @@ export class StoresController {
     return this.storesService.createStore(createStoreDto, req);
   }
 
+  @Post('/set-location')
+  setLocations(
+    @Body(new CustomValidationPipe()) setLocationsDto: SetLocationsDto,
+    @Req() req: Request,
+  ){
+    return this.storesService.setLocation(setLocationsDto, req);
+  }
 
+  @Header('Cache-Control', '60')
   @Get()
   findAll(
     @Query(new CustomValidationPipe()) findAllStoreDto: FindAllStoreDto,
   ) {
+    console.log('request');
     return this.storesService.findAll(findAllStoreDto);
   }
 

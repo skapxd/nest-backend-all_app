@@ -11,12 +11,13 @@ import { Column, Entity, ObjectIdColumn } from 'typeorm';
 @Entity()
 export class StoreEntity {
 
+
     @ObjectIdColumn()
+    private _id?: string;
+
+    @Column()
     id?: string;
     
-    @Column()
-    phoneIdStore?: string;
-
     @Column()
     category?: string;
 

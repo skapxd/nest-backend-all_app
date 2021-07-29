@@ -14,10 +14,8 @@ export class ContactStoreEntity {
     @Column()
     phoneCall: string;
     
-    @Column()
-    address: string;
     
     @Column()
-    phoneWhatsApp: string;
+    whatsApp: string;
 }
 

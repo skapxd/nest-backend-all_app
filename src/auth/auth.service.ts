@@ -123,17 +123,21 @@ export class AuthService {
       const code: string = random.toString().substring(0, 6)
       userDto.smsCode = code;
 
+
       // Improving code readability
       let prettyCode: string[] = userDto.smsCode.split('');
       prettyCode.splice(3, 0, ' ')
-      userDto.smsCode = code;
-
-
+      
+      
       // Caching code
-      const stringUserData = JSON.stringify(userDto)
+      const cacheCode = {
+        smsCode: code,
+        phone: userDto.phone
+      }
+      const stringCacheCode = JSON.stringify(cacheCode)
       await this.cacheManager.set(
         `__code__${userDto.phone}`,
-        stringUserData, {
+        stringCacheCode, {
         ttl: 360
       });
 

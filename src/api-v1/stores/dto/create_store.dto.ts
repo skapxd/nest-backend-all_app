@@ -4,10 +4,10 @@ import { LatLngDto } from '../../../models/dto/lat_lng.dto';
 
 export class CreateStoreDto {
     
-    @IsDefined()
-    @Type(() => LatLngDto)
-    @ValidateNested()
-    latLng?: LatLngDto[];
+    // @IsDefined()
+    // @Type(() => LatLngDto)
+    // @ValidateNested()
+    // latLng?: LatLngDto[];
 
     @IsString()
     category: string;
@@ -25,5 +25,5 @@ export class CreateStoreDto {
     
     address?: string;
     
-    phoneWhatsApp?: string;
+    whatsApp?: string;
 }
