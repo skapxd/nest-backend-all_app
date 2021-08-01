@@ -11,16 +11,20 @@ import { GeoCodingModule } from '../api-v1/geo_coding/geo_coding.module';
 
 import { UserEntity } from './entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { StoresModule } from '../api-v1/stores/stores.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       UserEntity,
     ]),
 
+    StoresModule,
+
     ConfigModule, 
     WhatsAppModule,
     PassportModule,
     GeoCodingModule,
+
     CacheModule.register(),
     
     JwtModule.registerAsync({

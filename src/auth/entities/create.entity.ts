@@ -6,7 +6,7 @@ export class UserCreateEntity {
 
     @ObjectIdColumn()
     id?: string;
-    
+
     @Column(type => LatLngEntity)
     latLng?: LatLngEntity;
 
@@ -16,6 +16,10 @@ export class UserCreateEntity {
     department?: string;
     @Column()
     city?: string;
+
+
+    @Column()
+    name?: string;
 
     @Column()
     createDateUser?: any;

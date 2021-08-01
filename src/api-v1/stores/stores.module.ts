@@ -19,7 +19,6 @@ import { StoreEntity } from './entities/store.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      // UserEntity,
       StoreEntity
     ]),
     FirebaseModule,
@@ -34,6 +33,10 @@ import { StoreEntity } from './entities/store.entity';
   ],
   controllers: [StoresController],
   providers: [
+    StoresService,
+    JwtStrategy,
+  ],
+  exports: [
     StoresService,
     JwtStrategy,
   ]

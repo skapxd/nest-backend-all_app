@@ -1,8 +1,8 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable, Req } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Cache } from "cache-manager";
 import { WhatsAppService } from 'src/providers/whatsapp/whatsapp.service';
-import { FirebaseService } from '../providers/firebase/firebase.service';
+// import { FirebaseService } from '../providers/firebase/firebase.service';
 import { GeoCodingService } from '../api-v1/geo_coding/geo_coding.service';
 import { VerifyPhoneCodeDto } from './dto/verify_phone_code.dto';
 import { UserEntity } from './entities/user.entity';
@@ -10,6 +10,7 @@ import { CreatePhoneCodeDto } from './dto/create_phone_code.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserCreateEntity } from './entities/create.entity';
+import { StoresService } from '../api-v1/stores/stores.service';
 
 
 @Injectable()
@@ -24,8 +25,35 @@ export class AuthService {
     private userRepository: Repository<UserEntity>,
     private readonly whatsApp: WhatsAppService,
     private readonly geoCodingService: GeoCodingService,
+    private readonly storeService: StoresService,
+
 
   ) { }
+
+  async setUserName(data: {name: string}, req: Request) {
+
+
+    // User extracted from jwt
+    const userID: { phone?: string } = req['user'];
+
+    // Verify user existence
+    const ifExistUser = await this.userRepository.findOne({
+      where: {
+        phone: userID.phone
+      }
+    })
+
+    const userEntity = new UserEntity();
+
+    userEntity.name = data.name;
+
+    
+    this.userRepository.update(ifExistUser, userEntity);
+
+    return {
+      success: true,
+    }
+  }
 
   async verifyPhoneCode(data: VerifyPhoneCodeDto) {
 
@@ -66,7 +94,6 @@ export class AuthService {
         const userEntity = new UserEntity()
         userEntity.phone = data.phone;
 
-
         userEntity.create = new UserCreateEntity()
         userEntity.create.latLng = {
           lat: data.latLng.lat,
@@ -79,10 +106,10 @@ export class AuthService {
           lat: data.latLng.lat,
           lng: data.latLng.lng,
         })
-        userEntity.create.city            = addressModel.city
-        userEntity.create.department      = addressModel.department
-        userEntity.create.country         = addressModel.country
-        userEntity.create.createDateUser  = new Date().toString()
+        userEntity.create.city = addressModel.city
+        userEntity.create.department = addressModel.department
+        userEntity.create.country = addressModel.country
+        userEntity.create.createDateUser = new Date().toString()
 
 
         // Save userEntity
@@ -95,10 +122,14 @@ export class AuthService {
         saveEntity();
       }
 
+      const storeEntity = await this.storeService.findOne(user.phone)
+
 
       return {
         success: true,
         token: this.jwtService.sign({ phone: user.phone }),
+        user: ifExistUser,
+        store: storeEntity
       }
 
     } catch (error: any) {
@@ -127,8 +158,8 @@ export class AuthService {
       // Improving code readability
       let prettyCode: string[] = userDto.smsCode.split('');
       prettyCode.splice(3, 0, ' ')
-      
-      
+
+
       // Caching code
       const cacheCode = {
         smsCode: code,

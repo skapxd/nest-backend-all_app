@@ -108,6 +108,8 @@ export class StoresService {
 
         // Create storeEntity
         const storeEntity: StoreEntity = {
+          iconPathCategory: createStoreDto.iconPathCategory,
+          description: createStoreDto.description,
           id: storeID.phone,
           contact: {
             phoneCall: createStoreDto.phoneCall,
@@ -119,7 +121,6 @@ export class StoresService {
           visibility: createStoreDto.visibility,
         }
 
-        console.log(storeEntity);
 
 
         // Verify store exist 
@@ -129,6 +130,7 @@ export class StoresService {
           }
         })
 
+        console.log(`ifExistStore: ${ifExistStore}`);
 
         // If store don't exist, add Date create
         const now = new Date();
@@ -225,34 +227,29 @@ export class StoresService {
 
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<StoreEntity | undefined>  {
 
-    // try {
+    try {
 
-    //   const documentSnapshot = await this.firebase.fireStore.collection(this.stores).doc(id).get()
+      const storeEntity = await this.storeRepository.findOne({
+        where: {
+          id: id
+        }
+      })
 
 
-    //   if (!documentSnapshot.exists) {
+      if (!storeEntity) {
 
-    //     throw new Error("Store don't exist");
-    //   }
+        throw new Error("Store don't exist");
+      }
 
-    //   const res = documentSnapshot.data()
+      return storeEntity;
 
-    //   return {
-    //     success: true,
-    //     res
-    //   }
+    } catch (error) {
 
-    // } catch (error) {
+      return;
+    }
 
-    //   return {
-    //     success: false,
-    //     error: error.message
-    //   }
-    // }
-
-    return `This action returns a #${id} store`;
   }
 
 
@@ -323,7 +320,6 @@ export class StoresService {
         )
 
         const initStoreEntity: StoreEntity = {
-
           id: storeID.phone,
           address: locationsList,
           contact: {

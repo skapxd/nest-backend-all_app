@@ -23,11 +23,10 @@ export class UserEntity {
 
     @Column()
     tokenFCM?: string;
+    
 
     
     @Column(type => UserCreateEntity)
     create?: UserCreateEntity
-
-
 }
 

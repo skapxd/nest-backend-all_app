@@ -12,6 +12,14 @@ export class CreateStoreDto {
     @IsString()
     category: string;
     
+
+    @IsString()
+    iconPathCategory?: string;
+
+    @IsString()
+    description: string;
+    
+
     @IsString()
     nameStore?: string;
 

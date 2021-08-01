@@ -1,7 +1,3 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import * as  mongoose from 'mongoose';
-
-import { LatLngEntity } from "src/models/entity/lat_lng.entity";
 import { ContactStoreEntity } from "./contac_store.entity";
 import { AddressEntity } from '../../../models/entity/address.entity';
 import { Column, Entity, ObjectIdColumn } from 'typeorm';
@@ -20,9 +16,16 @@ export class StoreEntity {
     
     @Column()
     category?: string;
+    
+    @Column()
+    iconPathCategory?: string
 
     @Column()
     urlImage?: string;
+
+    
+    @Column()
+    description?: string;
 
     @Column()
     nameStore?: string;
