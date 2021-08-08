@@ -10,23 +10,23 @@ export class UserEntity {
     id?: string;
     
     @Column()
-    name?: string;
+    nameUser?: string;
 
     @Column()
-    urlPhoto?: string;
+    urlPhotoUser?: string;
 
     @Column()
-    phone: string;
+    phoneUser: string;
 
     @Column()
     lastAccessDateUser?: string;
 
     @Column()
-    tokenFCM?: string;
+    tokenFCMUser?: string;
     
 
     
     @Column(type => UserCreateEntity)
-    create?: UserCreateEntity
+    createUser?: UserCreateEntity
 }
 

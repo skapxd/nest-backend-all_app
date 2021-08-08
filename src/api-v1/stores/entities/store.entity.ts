@@ -1,12 +1,12 @@
 import { ContactStoreEntity } from "./contac_store.entity";
-import { AddressEntity } from '../../../models/entity/address.entity';
 import { Column, Entity, ObjectIdColumn } from 'typeorm';
+import { CategoryProductStore } from "../product/entities/category_product_store.entity";
+import { AddressStoreEntity } from "./address_store_entity";
 
 
 
 @Entity()
 export class StoreEntity {
-
 
     @ObjectIdColumn()
     private _id?: string;
@@ -15,31 +15,33 @@ export class StoreEntity {
     id?: string;
     
     @Column()
-    category?: string;
+    categoryStore?: string;
     
     @Column()
-    iconPathCategory?: string
+    iconPathCategoryStore?: string
 
     @Column()
-    urlImage?: string;
+    urlImageStore?: string;
 
+    @Column(type => CategoryProductStore)
+    categoryProductsStore?: CategoryProductStore[]
     
     @Column()
-    description?: string;
+    descriptionStore?: string;
 
     @Column()
     nameStore?: string;
 
     @Column()
-    visibility?: boolean;
+    visibilityStore?: boolean;
 
     @Column()
-    createData?: string;
+    createDataStore?: string;
 
-    @Column(type => AddressEntity)
-    address?: AddressEntity[];
+    @Column(type => AddressStoreEntity)
+    addressStore?: AddressStoreEntity[];
 
     @Column(type => ContactStoreEntity)
-    contact?: ContactStoreEntity
+    contactStore?: ContactStoreEntity
 }
 

@@ -1,37 +1,80 @@
 // TODO: Send Push Notification with FCM
-import * as fs from "fs";
 import * as admin from "firebase-admin";
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from "src/config/config.service";
+import { Storage } from "@google-cloud/storage";
+import { v4 as uuid4 } from "uuid";
+import { join } from "path";
+
+// interface UploadFileI {
+//     file: Express.Multer.File;
+//     name: string;
+// }
 
 @Injectable()
 export class FirebaseService {
 
+    keyFile = join(__dirname + '../../../../' + 'env/dev_firebase.json')
+
+    private storage = new Storage({
+        keyFile: this.keyFile,
+        projectId: "all-app-319600",
+    });
+
+    private bucket = this.storage.bucket('images_of_store_and_users');
 
 
     constructor(
         private configService: ConfigService,
-    ){
+    ) {
         this.setCredential()
     }
 
-    // public get fireStore(){
-    //     return admin.firestore();
-    // }
+    public async uploadFile({
+        data,
+        user
+    }: {
+        data: Express.Multer.File,
+        user: string
+    }): Promise<string> {
 
-    public get storage(){
-        const storage = admin.storage().bucket(); 
-        
+        const v4 = uuid4()
+
+        const file = this.bucket
+            .file(`${user}/${v4}${data.originalname}`)
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                await file.save(data.buffer, {
+                    public: true,
+                    configPath: data.mimetype
+                })
+
+                resolve(file.publicUrl());
+
+            } catch (error) {
+                console.log(`Ocurrio un error en la subida del archivo:`);
+                console.log(error);
+                reject(error)
+            }
+        });
+    }
+
+    public get storageDeprecated() {
+        const storage = admin.storage().bucket();
+
         // storage.
         return storage;
     }
 
-    public get admin(){
+    public get admin() {
         return admin;
     }
-    
 
-    setCredential(){
+
+    setCredential() {
 
         admin.initializeApp({
             credential: admin.credential.cert(

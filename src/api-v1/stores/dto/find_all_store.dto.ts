@@ -11,4 +11,7 @@ export class FindAllStoreDto {
     city?: string;
     country?: string;
     department?: string
+
+    
+    limit?: number
 }

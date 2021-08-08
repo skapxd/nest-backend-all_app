@@ -1,17 +1,21 @@
-import { Headers, Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors, UploadedFile, Req, Header } from '@nestjs/common';
+import { Headers, Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors, UploadedFile, Req, Header, ParseIntPipe } from '@nestjs/common';
 import { StoresService } from './stores.service';
-import { CreateStoreDto } from './dto/create_store.dto';
+import { CreateStoreDto } from './dto/store.dto';
 import { JwtAuthGuard } from 'src/auth/jwt_auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from "express";
 import { CustomValidationPipe } from '../../pipes/custom_error.pipe';
 import { FindAllStoreDto } from './dto/find_all_store.dto';
 import { SetLocationsDto } from './dto/set_locations.dto';
+import { FirebaseService } from '../../providers/firebase/firebase.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class StoresController {
-  constructor(private readonly storesService: StoresService) { }
+  constructor(
+    private readonly storesService: StoresService,
+  ) { }
+
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -36,7 +40,7 @@ export class StoresController {
   setLocations(
     @Body(new CustomValidationPipe()) setLocationsDto: SetLocationsDto,
     @Req() req: Request,
-  ){
+  ) {
     return this.storesService.setLocation(setLocationsDto, req);
   }
 
@@ -45,7 +49,6 @@ export class StoresController {
   findAll(
     @Query(new CustomValidationPipe()) findAllStoreDto: FindAllStoreDto,
   ) {
-    console.log('request');
     return this.storesService.findAll(findAllStoreDto);
   }
 

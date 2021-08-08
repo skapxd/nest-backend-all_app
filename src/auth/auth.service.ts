@@ -39,13 +39,13 @@ export class AuthService {
     // Verify user existence
     const ifExistUser = await this.userRepository.findOne({
       where: {
-        phone: userID.phone
+        phoneUser: userID.phone
       }
     })
 
     const userEntity = new UserEntity();
 
-    userEntity.name = data.name;
+    userEntity.nameUser = data.name;
 
     
     this.userRepository.update(ifExistUser, userEntity);
@@ -76,9 +76,11 @@ export class AuthService {
       // Verify user existence
       const ifExistUser = await this.userRepository.findOne({
         where: {
-          phone: data.phone
+          phoneUser: data.phone
         }
       })
+
+      console.log(ifExistUser);
 
 
       // Delete cache code
@@ -92,10 +94,10 @@ export class AuthService {
 
 
         const userEntity = new UserEntity()
-        userEntity.phone = data.phone;
+        userEntity.phoneUser = data.phone;
 
-        userEntity.create = new UserCreateEntity()
-        userEntity.create.latLng = {
+        userEntity.createUser = new UserCreateEntity()
+        userEntity.createUser.latLngUser = {
           lat: data.latLng.lat,
           lng: data.latLng.lng,
         }
@@ -106,10 +108,10 @@ export class AuthService {
           lat: data.latLng.lat,
           lng: data.latLng.lng,
         })
-        userEntity.create.city = addressModel.city
-        userEntity.create.department = addressModel.department
-        userEntity.create.country = addressModel.country
-        userEntity.create.createDateUser = new Date().toString()
+        userEntity.createUser.city = addressModel.city
+        userEntity.createUser.department = addressModel.department
+        userEntity.createUser.country = addressModel.country
+        userEntity.createUser.createDateUser = new Date().toString()
 
 
         // Save userEntity
@@ -128,8 +130,8 @@ export class AuthService {
       return {
         success: true,
         token: this.jwtService.sign({ phone: user.phone }),
-        user: ifExistUser,
-        store: storeEntity
+        userLogin: ifExistUser,
+        storeLogin: storeEntity
       }
 
     } catch (error: any) {
