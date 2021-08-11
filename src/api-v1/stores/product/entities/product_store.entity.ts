@@ -1,10 +1,16 @@
-import { Column, Entity } from "typeorm"
+import { Column, Entity, ObjectIdColumn } from "typeorm"
 
 @Entity()
 export class ProductStoreEntity {
+
+    @ObjectIdColumn()
+    private _idMongo?: string;
     
     @Column()
-    visibilityProductStore?: boolean
+    id?: string; 
+
+    @Column()
+    availabilityProductStore?: boolean
 
     @Column()
     nameProductStore?: string
@@ -13,8 +19,11 @@ export class ProductStoreEntity {
     priceProductStore?: string
 
     @Column()
-    quantityProductStore?: number
+    quantityProductStore?: string
 
     @Column()
     urlImageProductStore?: string
+
+    @Column()
+    categoryProductStore?: string
 }

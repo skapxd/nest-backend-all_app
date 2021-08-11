@@ -4,6 +4,7 @@ import { StoresModule } from "./api-v1/stores/stores.module";
 import { AuthModule } from './auth/auth.module';
 import { GeoCodingModule } from 'src/api-v1/geo_coding/geo_coding.module';
 import { ProductModule } from "./api-v1/stores/product/product.module";
+import { GcpModule } from "./api-v1/gcp/gcp.module";
 
 export const routes: Routes = [
     {
@@ -23,6 +24,10 @@ export const routes: Routes = [
                         module: ProductModule
                     }
                 ]
+            },
+            {
+                path: 'gcp',
+                module: GcpModule,
             },
             {
                 path: 'geo-coding',

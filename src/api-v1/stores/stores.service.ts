@@ -17,61 +17,15 @@ import { AddressStoreEntity } from './entities/address_store_entity';
 export class StoresService {
 
   constructor(
+    private readonly gcp: FirebaseService,
     private readonly firebase: FirebaseService,
     private readonly config: ConfigService,
     private readonly geoCodingService: GeoCodingService,
 
     @InjectRepository(StoreEntity)
     private storeRepository: Repository<StoreEntity>,
-    private readonly gcp: FirebaseService,
   ) { }
 
-  async uploadLogo(
-    file: Express.Multer.File,
-    req: Request,
-  ) {
-    const storeID: { phone?: string } = req['user'];
-
-    try {
-
-      const result = await this.gcp.uploadFile({
-        user: storeID.phone,
-        data: file,
-      });
-
-      const storeEntity = new StoreEntity()
-      storeEntity.id = storeID.phone;
-      storeEntity.urlImageStore = result
-
-
-
-      // Verify store exist 
-      const ifExistStore = await this.storeRepository.findOne({
-        where: {
-          id: storeID.phone
-        }
-      })
-
-
-      if (!ifExistStore) {
-        this.storeRepository.save(storeEntity);
-      } else {
-        this.storeRepository.update(ifExistStore, storeEntity);
-      }
-
-      return {
-        success: true,
-        urlImage: result
-      }
-
-    } catch (error) {
-
-      return {
-        success: false,
-        error
-      }
-    }
-  }
 
   async createStore(
     createStoreDto: CreateStoreDto,
@@ -79,8 +33,6 @@ export class StoresService {
   ) {
 
     try {
-
-      console.log(createStoreDto);
 
 
       // User extracted from jwt
@@ -91,17 +43,18 @@ export class StoresService {
 
         // Create storeEntity
         const storeEntity: StoreEntity = {
-          iconPathCategoryStore: createStoreDto.iconPathCategory,
-          descriptionStore: createStoreDto.description,
           id: storeID.phone,
+          urlImageStore: createStoreDto.urlImage,
+          descriptionStore: createStoreDto.description,
+          nameStore: createStoreDto.nameStore,
+          categoryStore: createStoreDto.category,
+          visibilityStore: createStoreDto.visibility,
+          iconPathCategoryStore: createStoreDto.iconPathCategory,
           contactStore: {
             phoneCall: createStoreDto.phoneCall,
             whatsApp: createStoreDto.whatsApp,
             telegram: createStoreDto.telegram,
           },
-          categoryStore: createStoreDto.category,
-          nameStore: createStoreDto.nameStore,
-          visibilityStore: createStoreDto.visibility,
         }
 
 
@@ -145,6 +98,41 @@ export class StoresService {
     }
   }
 
+  async setProductCategories(body: string[], req: Request) {
+
+    try {
+      
+      // User extracted from jwt
+      const storeID: { phone?: string } = req['user'];
+
+      const store = new StoreEntity();
+      store.productsCategoriesStore = body;
+
+      const ifStore = await this.storeRepository.findOne({
+        where: {
+          id: storeID.phone
+        }
+      })
+
+      if (!ifStore) {
+        
+        throw new Error("Store don't exist");
+      }
+
+      this.storeRepository.update(ifStore, store)
+
+      return {
+        success: true
+      }
+    } catch (error) {
+      
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+  }
+
   async findAll(findAllStoreDto: FindAllStoreDto) {
 
     try {
@@ -171,7 +159,6 @@ export class StoresService {
 
 
 
-      console.log('limit ' + findAllStoreDto.limit);
       // If Category does not come in Query, Get All stores
       if (!findAllStoreDto.category) {
         allStores = await this.storeRepository.find({
@@ -196,9 +183,6 @@ export class StoresService {
           }
         })
       }
-
-      // console.log('limit all stores ' + allStores.length);
-      // console.log(allStores);
 
       return {
         success: true,

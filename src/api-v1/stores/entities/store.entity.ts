@@ -1,7 +1,7 @@
 import { ContactStoreEntity } from "./contac_store.entity";
 import { Column, Entity, ObjectIdColumn } from 'typeorm';
-import { CategoryProductStore } from "../product/entities/category_product_store.entity";
 import { AddressStoreEntity } from "./address_store_entity";
+import { ProductStoreEntity } from "../product/entities/product_store.entity";
 
 
 
@@ -23,8 +23,11 @@ export class StoreEntity {
     @Column()
     urlImageStore?: string;
 
-    @Column(type => CategoryProductStore)
-    categoryProductsStore?: CategoryProductStore[]
+    @Column()
+    productsStore?: string[];
+    
+    @Column()
+    productsCategoriesStore?: string[];
     
     @Column()
     descriptionStore?: string;

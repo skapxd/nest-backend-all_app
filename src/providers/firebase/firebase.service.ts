@@ -14,7 +14,8 @@ import { join } from "path";
 @Injectable()
 export class FirebaseService {
 
-    keyFile = join(__dirname + '../../../../' + 'env/dev_firebase.json')
+    keyFile = 'env/dev_firebase.json'
+    // keyFile = join(__dirname + '../../../../' + 'env/dev_firebase.json')
 
     private storage = new Storage({
         keyFile: this.keyFile,
@@ -31,10 +32,10 @@ export class FirebaseService {
     }
 
     public async uploadFile({
-        data,
+        file: data,
         user
     }: {
-        data: Express.Multer.File,
+        file: Express.Multer.File,
         user: string
     }): Promise<string> {
 

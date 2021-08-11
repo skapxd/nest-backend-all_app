@@ -17,14 +17,14 @@ export class StoresController {
   ) { }
 
 
-  @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
-  uploadFile(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
-  ) {
 
-    return this.storesService.uploadLogo(file, req);
+
+  @Post('/list-product-categories')
+  listOfProductCategory(
+    @Body() body: { list: string[]},
+    @Req() req: Request,
+  ){
+    return this.storesService.setProductCategories(body.list, req);
   }
 
 

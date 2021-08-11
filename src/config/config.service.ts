@@ -17,6 +17,9 @@ export class ConfigService {
   public geoCodingKey: string = process.env.GEO_CODING_KEY
   public mongoDbCredential: string = process.env.MONGO_DB_CREDENTIAL
 
+  public gcpCredential: string = process.env.GCP_JSON_CREDENTIAL
+  public gcpProjectId: string = process.env.GCP_PROJECT_ID
+
   public setEnv() {
 
     // Important, the variable is not overwritten
