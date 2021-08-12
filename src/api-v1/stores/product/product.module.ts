@@ -15,7 +15,8 @@ import { ProductStoreEntity } from './entities/product_store.entity';
     ]),
   ],
   controllers: [ProductController],
-  providers: [ProductService]
+  providers: [ProductService],
+  exports: [ProductService]
 })
 export class ProductModule {}
  

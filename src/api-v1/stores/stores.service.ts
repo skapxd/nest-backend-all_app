@@ -9,9 +9,11 @@ import { FindAllStoreDto } from './dto/find_all_store.dto';
 import { LatLngEntity } from 'src/models/entity/lat_lng.entity';
 import { AddressEntity } from 'src/models/entity/address.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { SetLocationsDto } from './dto/set_locations.dto';
 import { AddressStoreEntity } from './entities/address_store_entity';
+import { ProductService } from './product/product.service';
+import { ProductStoreEntity } from './product/entities/product_store.entity';
 
 @Injectable()
 export class StoresService {
@@ -21,6 +23,11 @@ export class StoresService {
     private readonly firebase: FirebaseService,
     private readonly config: ConfigService,
     private readonly geoCodingService: GeoCodingService,
+    // private readonly productService: ProductService,
+
+
+    @InjectRepository(ProductStoreEntity)
+    private productStoreRepository: Repository<ProductStoreEntity>,
 
     @InjectRepository(StoreEntity)
     private storeRepository: Repository<StoreEntity>,
@@ -98,10 +105,10 @@ export class StoresService {
     }
   }
 
-  async setProductCategories(body: string[], req: Request) {
+  async createProductCategories(body: string[], req: Request) {
 
     try {
-      
+
       // User extracted from jwt
       const storeID: { phone?: string } = req['user'];
 
@@ -115,7 +122,7 @@ export class StoresService {
       })
 
       if (!ifStore) {
-        
+
         throw new Error("Store don't exist");
       }
 
@@ -125,11 +132,63 @@ export class StoresService {
         success: true
       }
     } catch (error) {
-      
+
       return {
         success: false,
         error: error.message
       }
+    }
+  }
+
+  async deleteProductCategories(
+    body: { categories: string[], ids: string[] },
+    req: Request
+  ) {
+
+    try {
+
+      const storeID: { phone?: string } = req['user'];
+
+      const ifStore = await this.storeRepository.findOne({
+        where: {
+          id: storeID.phone
+        }
+      })
+
+      if (!ifStore) {
+
+        throw new Error("Store don't exist");
+      }
+
+      const newStore = new StoreEntity()
+
+      const deleteCategoriesOfStoreEntity = () => {
+        // Create new Arr without categories 
+        newStore.productsCategoriesStore = ifStore.productsCategoriesStore.filter((value, index, arr) => {
+          if (!body.categories.includes(value)) {
+            return value;
+          }
+        })
+        this.storeRepository.update(ifStore, newStore);
+      }
+
+      const deleteProductOfProductEntity = () => {
+
+        body.ids.forEach((e) => {
+
+          this.productStoreRepository.delete({
+            id: In(body.ids)
+          })
+        })
+      }
+
+      deleteCategoriesOfStoreEntity()
+
+      deleteProductOfProductEntity()
+
+
+    } catch (error) {
+
     }
   }
 
@@ -226,25 +285,6 @@ export class StoresService {
 
   }
 
-
-  removeLocationsStoreEntityFromStoreEntity(req: Request) {
-
-    // User extracted from jwt
-    const user: { phone?: string } = req['user'];
-
-
-    // this.firebase.fireStore.collection(this.stores)
-    //   .doc(user.phone)
-    //   .update({
-    //     address: this.firebase.admin.firestore.FieldValue.delete(),
-    //     geoLocations: this.firebase.admin.firestore.FieldValue.delete()
-    //   })
-
-
-    return {
-      success: true
-    };
-  }
 
   async setLocation(
     setLocationsDto: SetLocationsDto,
@@ -343,9 +383,5 @@ export class StoresService {
         functionName: "setLocation"
       }
     }
-  }
-
-  async createProducto() {
-
   }
 }

@@ -10,13 +10,17 @@ import { ConfigModule } from 'src/config/config.module';
 import { GeoCodingModule } from 'src/api-v1/geo_coding/geo_coding.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StoreEntity } from './entities/store.entity';
+import { ProductModule } from './product/product.module';
+import { ProductStoreEntity } from './product/entities/product_store.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      StoreEntity
+      ProductStoreEntity,
+      StoreEntity,
     ]),
     FirebaseModule,
+    ProductModule,
     ConfigModule,
     GeoCodingModule,
     PassportModule,

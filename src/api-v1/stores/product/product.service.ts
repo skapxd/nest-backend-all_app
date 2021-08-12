@@ -43,22 +43,22 @@ export class ProductService {
       const saveInProductEntity = async (_productDto: ProductStoreDto): Promise<string> => {
 
         let product = new ProductStoreEntity();
-        
+
         if (_productDto.name) {
 
           product.nameProductStore = _productDto.name;
         }
-        
+
         if (_productDto.price) {
 
           product.priceProductStore = _productDto.price;
         }
-        
+
         if (_productDto.quantity) {
 
           product.quantityProductStore = _productDto.quantity;
         }
-        
+
         if (_productDto.availability) {
 
           product.availabilityProductStore = _productDto.availability;
@@ -171,27 +171,33 @@ export class ProductService {
 
       }
 
-      const newStore = new StoreEntity()
+      const deleteProductOfStoreEntity = () => {
+        const newStore = new StoreEntity()
+        newStore.productsStore = ifStore.productsStore.filter((value, index, arr) => {
+          // Return elements that not in ids 
+          if (!ids.includes(value)) {
+            return value;
+          }
+        })
+        this.storeRepository.update(ifStore, newStore);
+      }
 
-      console.log(newStore.productsStore?.length || 0);
+      const deleteProductOfProductEntity = () => {
 
-      newStore.productsStore = ifStore.productsStore.filter((value, index, arr) => {
-
-        if (!ids.includes(value)) {
-          return value;
-        } else {
+        ids.forEach((e) => {
 
           this.productStoreRepository.delete({
-            id: value,
+            id: e,
           })
-        }
-      })
+        })
+      }
 
-      this.storeRepository.update(ifStore, newStore);
+
+      deleteProductOfStoreEntity()
+      deleteProductOfProductEntity()
 
       return {
         success: true,
-
       }
 
     } catch (error) {
@@ -203,4 +209,5 @@ export class ProductService {
       }
     }
   }
+
 }

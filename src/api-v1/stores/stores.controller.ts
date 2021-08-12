@@ -18,11 +18,19 @@ export class StoresController {
 
 
   @Post('/list-product-categories')
-  listOfProductCategory(
+  createListOfProductCategory(
     @Body() body: { list: string[]},
     @Req() req: Request,
   ){
-    return this.storesService.setProductCategories(body.list, req);
+    return this.storesService.createProductCategories(body.list, req);
+  }
+
+  @Delete('/list-product-categories')
+  deleteListOfProductCategory(
+    @Body() body: { list: string[]},
+    @Req() req: Request,
+  ){
+    return this.storesService.createProductCategories(body.list, req);
   }
 
 
@@ -59,8 +67,4 @@ export class StoresController {
 
 
 
-  @Delete()
-  remove(@Req() req: Request) {
-    return this.storesService.removeLocationsStoreEntityFromStoreEntity(req);
-  }
 }
