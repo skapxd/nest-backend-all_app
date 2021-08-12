@@ -27,8 +27,14 @@ export class GcpService {
 
         const v4 = uuid4()
 
+        const extension = image.originalname.split('.').reverse()[0]
+
+        const  name = `${id.phone}/${v4}.${extension}`;
+        
+        console.log(name);
+        
         const file = this.bucket
-            .file(`${id.phone}/${v4}${image.originalname}`)
+            .file(name )
 
         try {
 

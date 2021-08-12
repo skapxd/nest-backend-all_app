@@ -17,8 +17,6 @@ export class StoresController {
   ) { }
 
 
-
-
   @Post('/list-product-categories')
   listOfProductCategory(
     @Body() body: { list: string[]},

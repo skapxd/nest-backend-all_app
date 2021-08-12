@@ -21,44 +21,10 @@ export class ProductService {
     private productStoreRepository: Repository<ProductStoreEntity>,
   ) { }
 
-
-  async uploadImageProduct(
-    file: Express.Multer.File,
-    req: Request
-  ) {
-
-    const storeID: { phone?: string } = req['user'];
-
-    try {
-
-      const result = await this.gcp.uploadFile({
-        user: storeID.phone,
-        file: file,
-      })
-
-      return {
-        success: true,
-        urlImage: result
-      }
-
-    } catch (error) {
-
-      return {
-        success: false,
-        error: error.message
-      }
-
-    }
-
-  }
-
   async create(productDto: ProductStoreDto, req: Request) {
 
     try {
 
-      // const storeID: { phone?: string } = {
-      //   phone: '+57'
-      // };
       const storeID: { phone?: string } = req['user'];
 
 
@@ -77,12 +43,37 @@ export class ProductService {
       const saveInProductEntity = async (_productDto: ProductStoreDto): Promise<string> => {
 
         let product = new ProductStoreEntity();
-        product.nameProductStore = _productDto.name;
-        product.priceProductStore = _productDto.price;
-        product.quantityProductStore = _productDto.quantity;
-        product.availabilityProductStore = _productDto.availability;
-        product.categoryProductStore = _productDto.category;
         
+        if (_productDto.name) {
+
+          product.nameProductStore = _productDto.name;
+        }
+        
+        if (_productDto.price) {
+
+          product.priceProductStore = _productDto.price;
+        }
+        
+        if (_productDto.quantity) {
+
+          product.quantityProductStore = _productDto.quantity;
+        }
+        
+        if (_productDto.availability) {
+
+          product.availabilityProductStore = _productDto.availability;
+        }
+
+        if (_productDto.category) {
+
+          product.categoryProductStore = _productDto.category;
+        }
+
+        if (_productDto.urlImageProductStore) {
+
+          product.urlImageProductStore = _productDto.urlImageProductStore
+        }
+
         if (!_productDto.id) {
           product.id = idv4();
           product = await this.productStoreRepository.save(product);
@@ -114,7 +105,7 @@ export class ProductService {
       }
 
       console.log('productId');
-      
+
       const productId = await saveInProductEntity(productDto);
 
       console.log('productId');
@@ -146,9 +137,6 @@ export class ProductService {
       const products = await this.productStoreRepository.find({
         where: {
           id: { $in: ids }
-          // id: { $in :['8d899157-cf6e-4ed8-83f9-612248b64427']}
-          // id: Any(['8d899157-cf6e-4ed8-83f9-612248b64427'])
-          // id: In(['8d899157-cf6e-4ed8-83f9-612248b64427'])
         }
       });
 
@@ -164,11 +152,55 @@ export class ProductService {
     return `This action returns a #${id} product`;
   }
 
-  // update(id: number, updateProductDto: UpdateProductDto) {
-  //   return `This action updates a #${id} product`;
-  // }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+
+  async deleteGroupProducts(ids: string[], req: Request) {
+
+    const storeID: { phone?: string } = req['user'];
+
+
+    try {
+      const ifStore = await this.storeRepository.findOne({
+        where: {
+          id: storeID.phone
+        }
+      })
+
+      if (!ifStore) {
+        throw new Error("Store don't exist");
+
+      }
+
+      const newStore = new StoreEntity()
+
+      console.log(newStore.productsStore?.length || 0);
+
+      newStore.productsStore = ifStore.productsStore.filter((value, index, arr) => {
+
+        if (!ids.includes(value)) {
+          return value;
+        } else {
+
+          this.productStoreRepository.delete({
+            id: value,
+          })
+        }
+      })
+
+      this.storeRepository.update(ifStore, newStore);
+
+      return {
+        success: true,
+
+      }
+
+    } catch (error) {
+
+      return {
+        success: false,
+        class: 'ProductService - deleteGroupProducts',
+        error: error.message
+      }
+    }
   }
 }
