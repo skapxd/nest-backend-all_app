@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from './config/config.service';
+import { UploadModule } from './providers/upload/upload.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ConfigService } from './config/config.service';
     }),
     AuthModule,
     ApiV1Module,
+    UploadModule,
   ],
   controllers: [AppController,],
   providers: [

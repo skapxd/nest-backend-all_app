@@ -9,7 +9,8 @@ import { Request } from "express";
 export class GcpService {
 
     constructor(
-        private env: ConfigService
+        private env: ConfigService,
+        
     ) { }
 
     private storage = new Storage({
