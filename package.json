@@ -21,10 +21,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "build": "nest build",
     "git-push": "git push -u origin master",
+    "git-push-heroku": "git push -u heroku master",
     "gcp": "gcloud app deploy --project all-app-319600",
     "logs:beta": "gcloud beta app logs tail",
     "gcp-init": "gcloud init",
-    "deploy": "run-s build git-push gcp logs:beta"
+    "deploy": "run-s build git-push git-push-heroku",
+    "deploy:dep": "run-s build git-push gcp logs:beta"
   },
   "dependencies": {
     "@adiwajshing/baileys": "^3.5.1",
