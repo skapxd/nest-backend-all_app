@@ -10,32 +10,31 @@ export class GcpService {
 
     constructor(
         private env: ConfigService,
-        
-    ) { }
+
+    ) {
+    }
 
     private storage = new Storage({
-        keyFile: this.env.gcpCredential,
+        keyFilename: this.env.gcpCredential,
         projectId: this.env.gcpProjectId,
+
     })
 
-    private bucket = this.storage.bucket('images_of_store_and_users');
+    private bucket = this.storage.bucket('all_app');
 
 
     public async uploadFile(image: Express.Multer.File, req: Request) {
 
         const id: { phone?: string } = req['user'];
 
-
         const v4 = uuid4()
 
         const extension = image.originalname.split('.').reverse()[0]
 
-        const  name = `${id.phone}/${v4}.${extension}`;
-        
-        console.log(name);
-        
+        const name = `${id.phone}/${v4}.${extension}`;
+
         const file = this.bucket
-            .file(name )
+            .file(name)
 
         try {
 

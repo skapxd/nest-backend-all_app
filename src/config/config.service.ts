@@ -1,8 +1,6 @@
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 
 import { config } from "dotenv";
-import * as fs from "fs";
 
 @Injectable()
 export class ConfigService {
@@ -26,7 +24,7 @@ export class ConfigService {
 
     // If dev.env exist, set as environment
     config({
-      path: 'env/dev.env'
+      path: 'env/dev.env' 
     })
 
     // If dev.env don't exist, set prod.dev as environment

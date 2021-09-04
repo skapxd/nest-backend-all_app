@@ -23,7 +23,6 @@ export class WhatsAppService {
     async sendSimpleText(data: any) {
 
 
-
         if (!this.conn.phoneConnected) {
             console.log('==========================');
             console.log('logged');

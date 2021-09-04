@@ -21,8 +21,9 @@ export class GcpController {
     @Req() req: Request,
   ) {
 
-    // return this.gcpService.uploadFile(file, req);
-    return this.upload.saveInServer(file)
+    console.log('object')
+    return this.gcpService.uploadFile(file, req);
+    // return this.upload.saveInServer(file)
   }
 
 }
