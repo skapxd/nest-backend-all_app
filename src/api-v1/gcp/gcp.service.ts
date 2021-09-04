@@ -10,9 +10,7 @@ export class GcpService {
 
     constructor(
         private env: ConfigService,
-
-    ) {
-    }
+    ) {}
 
     private storage = new Storage({
         keyFilename: this.env.gcpCredential,
